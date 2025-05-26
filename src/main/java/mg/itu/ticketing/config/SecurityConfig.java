@@ -21,6 +21,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
+                .requestMatchers("/reservations/api/*/pdf").permitAll() // Permettre l'accès à l'API PDF sans authentification
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -32,6 +33,12 @@ public class SecurityConfig {
                 .permitAll()
             )
             .userDetailsService(customUserDetailsService);
+        
+        // Désactiver la protection CSRF pour les endpoints d'API
+        http.csrf(csrf -> csrf
+            .ignoringRequestMatchers("/reservations/api/**")
+        );
+        
         return http.build();
     }
 
