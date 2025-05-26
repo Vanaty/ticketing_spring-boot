@@ -10,10 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -71,6 +68,27 @@ public class ReservationController {
 
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=reservation-" + id + ".pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfBytes);
+    }
+    
+    /**
+     * API REST pour exporter une réservation en PDF
+     * Cette méthode est accessible sans authentification
+     */
+    @GetMapping(value = "/api/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @ResponseBody
+    public ResponseEntity<byte[]> exportReservationPdfApi(@PathVariable("id") Long id) throws IOException {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Réservation non trouvée avec l'ID: " + id));
+
+        byte[] pdfBytes = reservationPdfService.generatePdf(reservation);
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=reservation-" + id + ".pdf")
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "GET")
+            .header("Access-Control-Allow-Headers", "Content-Type")
             .contentType(MediaType.APPLICATION_PDF)
             .body(pdfBytes);
     }
