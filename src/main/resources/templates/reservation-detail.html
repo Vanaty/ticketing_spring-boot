@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Détails de la Réservation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <div th:replace="~{layout :: navbar}"></div>
+            <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/reservations" class="text-decoration-none">Réservations</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Détails de la Réservation #<span th:text="${reservation.id}"></span></li>
+                    </ol>
+                </nav>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 fw-bold">
+                        <i class="bi bi-ticket-detailed me-2 text-primary"></i>
+                        Réservation #<span th:text="${reservation.id}"></span>
+                    </h1>
+                    <div>
+                        <a th:href="@{/reservations/{id}/edit(id=${reservation.id})}" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-pencil me-2"></i>Modifier
+                        </a>
+                        <a href="#" class="btn btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                        <!-- Bouton Export PDF -->
+                        <a th:href="@{/reservations/{id}/pdf(id=${reservation.id})}" target="_blank" class="btn btn-outline-secondary">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Exporter en PDF
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>Informations Générales
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4 text-muted">Statut</div>
+                                    <div class="col-md-8">
+                                        <span th:if="${reservation.status == 'PENDING'}" class="badge bg-warning px-3 py-2">En attente</span>
+                                        <span th:if="${reservation.status == 'CONFIRMED'}" class="badge bg-success px-3 py-2">Confirmée</span>
+                                        <span th:if="${reservation.status == 'CANCELLED'}" class="badge bg-danger px-3 py-2">Annulée</span>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-4 text-muted">Date de réservation</div>
+                                    <div class="col-md-8" th:text="${#temporals.format(reservation.daty, 'dd MMMM yyyy à HH:mm')}"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-4 text-muted">Prix total</div>
+                                    <div class="col-md-8 fw-bold" th:text="${#numbers.formatDecimal(reservation.prixTotal, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 text-muted">Nombre de places</div>
+                                    <div class="col-md-8" th:text="${reservation.nbrPlaces}"></div>
+                                </div>
+                                <div class="row" th:if="${reservation.nbrPlacesAnnuller > 0}">
+                                    <div class="col-md-4 text-muted">Places annulées</div>
+                                    <div class="col-md-8 text-danger" th:text="${reservation.nbrPlacesAnnuller}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-airplane me-2"></i>Détails du Vol
+                                </h5>
+                            </div>
+                            <div class="card-body" th:if="${reservation.vol != null}">
+                                <div class="row mb-3">
+                                    <div class="col-md-4 text-muted">Trajet</div>
+                                    <div class="col-md-8 fw-medium">
+                                        <span th:text="${reservation.vol.villeDepart?.ville}"></span>
+                                        <i class="bi bi-arrow-right mx-2"></i>
+                                        <span th:text="${reservation.vol.villeArrive?.ville}"></span>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-4 text-muted">Date de départ</div>
+                                    <div class="col-md-8" th:text="${#temporals.format(reservation.vol.dtDepart, 'dd MMMM yyyy')}"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 text-muted">Heure de départ</div>
+                                    <div class="col-md-8" th:text="${#temporals.format(reservation.vol.heureDepart, 'HH:mm')}"></div>
+                                </div>
+                            </div>
+                            <div class="card-body" th:unless="${reservation.vol != null}">
+                                <p class="text-muted mb-0">Informations de vol non disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-list-check me-2"></i>Détails des Places
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item p-3" th:each="detail : ${reservation.details}">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="fw-medium" th:text="${detail.typeSiege?.libelle}"></span>
+                                            <span class="badge bg-primary" th:text="${detail.nbrPersonnes} + ' personne(s)'"></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="text-muted" th:if="${detail.pricingRule != null}">
+                                                <i class="bi bi-tag me-1"></i>
+                                                <span th:text="${detail.pricingRule.libelle}"></span>
+                                                (<span th:text="${detail.pricingRule.discountPercentage}"></span>%)
+                                            </span>
+                                            <span class="fw-bold" th:text="${#numbers.formatDecimal(detail.prix, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal d'annulation -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelModalLabel">Confirmer l'annulation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir annuler cette réservation ? Cette action ne peut pas être annulée.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <form th:action="@{/reservations/{id}/cancel(id=${reservation.id})}" method="post">
+                        <button type="submit" class="btn btn-danger">Confirmer l'annulation</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
